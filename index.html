@@ -133,7 +133,7 @@ SM(X('lk'));SP('Ready');setTimeout(HO,1500);ML=false;return M;
 async function pred(file){var m=await loadModel();L('Proc:'+file.name);
 var img=await createImageBitmap(file),c=D.createElement('canvas');c.width=224;c.height=224;c.getContext('2d').drawImage(img,0,0,224,224);img.close();
 var inp=tf.browser.fromPixels(c).expandDims(0).toFloat();
-var out=m.predict(inp),p=out.dataSync()[0];
+var out=m.predict(inp),p=out.dataSync()[0];L('RAW probability: '+(p*100).toFixed(2)+'%');
 inp.dispose();out.dispose();c.width=0;c.height=0;
 return Math.min(Math.max(p,0),1)}
 
@@ -149,7 +149,7 @@ await new Promise(function(r){setTimeout(r,20)})
 bt.disabled=false;bt.textContent=X('b');AN=false}
 
 function RR(i,p){var pct=(p*100).toFixed(1),d=T[LG]||T['en'],bt,fc,at;
-if(p>=0.85){bt=d.hi;fc='#D4736A';at=d.ha;try{var b=D.getElementById('b'+i);b.style.background='#FDF0EE';b.style.color='#D4736A'}catch(e){}}else if(p>=0.75){bt=d.md;fc='#E89B3C';at=d.ma;try{var b=D.getElementById('b'+i);b.style.background='#FEF6EC';b.style.color='#E89B3C'}catch(e){}}else{bt=d.lo;fc='#3CAD7A';at=d.la;try{var b=D.getElementById('b'+i);b.style.background='#E8F7F0';b.style.color='#3CAD7A'}catch(e){}}
+if(p>=0.5){bt=d.hi;fc='#D4736A';at=d.ha+' (raw:'+(p*100).toFixed(1)+'%)';try{var b=D.getElementById('b'+i);b.style.background='#FDF0EE';b.style.color='#D4736A'}catch(e){}}else if(p>=0.25){bt=d.md;fc='#E89B3C';at=d.ma+' (raw:'+(p*100).toFixed(1)+'%)';try{var b=D.getElementById('b'+i);b.style.background='#FEF6EC';b.style.color='#E89B3C'}catch(e){}}else{bt=d.lo;fc='#3CAD7A';at=d.la+' (raw:'+(p*100).toFixed(1)+'%)';try{var b=D.getElementById('b'+i);b.style.background='#E8F7F0';b.style.color='#3CAD7A'}catch(e){}}
 var be=D.getElementById('b'+i);if(be){be.className='bd';be.textContent=bt}var pe=D.getElementById('p'+i);if(pe)pe.textContent=pct+'%';var fe=D.getElementById('f'+i);if(fe){fe.classList.remove('pu');fe.style.width=pct+'%';fe.style.background=fc}var ae=D.getElementById('a'+i);if(ae)ae.textContent=at}
 
 function init(){try{L('Init...');UL();LP().then(function(){L('Prep ready')});L('Ready')}catch(e){E('Init:'+e.message)}}
