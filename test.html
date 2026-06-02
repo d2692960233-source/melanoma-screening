@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Model Test</title></head>
+<body>
+<h1>Model Load Test</h1>
+<div id="log" style="font-family:monospace;white-space:pre-wrap;background:#111;color:#0f0;padding:20px;min-height:400px"></div>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<script>
+var logEl = document.getElementById('log');
+function log(msg) {
+  var line = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  logEl.textContent += line + '\n';
+  console.log(msg);
+}
+function err(msg) {
+  logEl.textContent += '[ERROR] ' + msg + '\n';
+  console.error(msg);
+}
+
+async function main() {
+  log('=== Starting model load test ===');
+  log('TF.js version: ' + (typeof tf !== 'undefined' ? tf.version.tfjs : 'NOT LOADED'));
+
+  if (typeof tf === 'undefined') {
+    err('TF.js failed to load from CDN!');
+    return;
+  }
+
+  // Test 1: Can we fetch model.json?
+  try {
+    log('Test 1: Fetching model.json...');
+    var r = await fetch('./tfjs_model/model.json');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    var topo = await r.json();
+    log('  OK — model.json loaded, format=' + topo.format + ', shards=' + topo.weightsManifest.length);
+  } catch(e) {
+    err('Test 1 FAILED: ' + e.message);
+    return;
+  }
+
+  // Test 2: Can we fetch the first shard?
+  try {
+    log('Test 2: Fetching first shard...');
+    var r2 = await fetch('./tfjs_model/group1-shard1of8.bin');
+    if (!r2.ok) throw new Error('HTTP ' + r2.status);
+    var buf = await r2.arrayBuffer();
+    log('  OK — shard1 downloaded, ' + (buf.byteLength / 1024).toFixed(1) + ' KB');
+  } catch(e) {
+    err('Test 2 FAILED: ' + e.message);
+    return;
+  }
+
+  // Test 3: Load the actual model
+  try {
+    log('Test 3: Loading model (downloading 17 MB + compiling, may take 3-5 min)...');
+    log('  PLEASE WAIT — do not close this page');
+    var start = Date.now();
+    var model = await tf.loadGraphModel('./tfjs_model/model.json');
+    var elapsed = ((Date.now() - start) / 1000).toFixed(1);
+    log('  OK — model loaded in ' + elapsed + 's');
+
+    // Test 4: Run inference
+    log('Test 4: Running dummy inference...');
+    var input = tf.zeros([1, 224, 224, 3]);
+    var output = model.predict(input);
+    var result = output.dataSync()[0];
+    log('  OK — inference result: ' + result);
+    input.dispose();
+    output.dispose();
+  } catch(e) {
+    err('Test 3/4 FAILED: ' + e.message);
+    err('Full error: ' + JSON.stringify(e));
+    return;
+  }
+
+  log('=== ALL TESTS PASSED ===');
+  log('Model is working correctly!');
+}
+
+main();
+</script>
+</body>
+</html>

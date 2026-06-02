@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能皮肤皮损辅助筛查系统</title>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<style>
+:root{--bg-s:#F5F0EB;--bg-e:#D6E4F0;--surface:rgba(255,255,255,0.55);--text:#1E2D3D;--text2:#5A6B7A;--accent:#3B8EBD;--accent-g1:#5BACE0;--accent-g2:#3DD6C8;--success:#3CAD7A;--warn:#E89B3C;--danger:#D4736A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans SC",Inter,sans-serif;background:linear-gradient(135deg,var(--bg-s),var(--bg-e));background-attachment:fixed;color:var(--text);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;line-height:1.6}
+.app{width:100%;max-width:1100px;background:var(--surface);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.4);border-radius:24px;padding:40px;box-shadow:0 16px 40px rgba(30,45,61,0.10)}
+.hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,0.4);padding-bottom:24px;margin-bottom:28px}
+.hd h1{font-size:26px;font-weight:700;color:#1a365d;margin-bottom:6px}
+.hd p{font-size:14px;color:var(--text2)}
+.sel{background:rgba(255,255,255,0.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(59,142,189,0.25);padding:8px 16px;border-radius:12px;font-size:14px;font-family:inherit;color:var(--text);cursor:pointer;outline:none}
+.ws{display:flex;gap:32px}.pl,.pr{flex:1;display:flex;flex-direction:column}
+.pt{font-size:16px;font-weight:600;margin-bottom:16px;color:#2c5282;display:flex;align-items:center;gap:8px}
+.uc{background:rgba(255,255,255,0.5);border:2px dashed rgba(100,160,200,0.45);border-radius:20px;padding:36px 20px;text-align:center;cursor:pointer;transition:all 0.3s}
+.uc:hover{background:rgba(255,255,255,0.75);border-color:var(--accent);transform:translateY(-2px)}
+.uc.go{background:rgba(255,255,255,0.9);border-color:var(--accent);border-style:solid;transform:scale(1.015)}
+.ic{font-size:40px;margin-bottom:14px;display:inline-block}.uc p{font-size:14px;color:var(--text2)}
+#fi{display:none}
+.pv{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:12px;margin-top:18px;max-height:180px;overflow-y:auto}
+.pi{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid rgba(255,255,255,0.75);box-shadow:0 1px 3px rgba(30,45,61,0.04);transition:all 0.3s}
+.pi:hover{transform:scale(1.05)}.pi img{width:100%;height:100%;object-fit:cover}
+.pi:hover .db{opacity:1}
+.db{position:absolute;top:4px;right:4px;background:rgba(212,115,106,0.9);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;opacity:0;transition:all 0.2s;display:flex;align-items:center;justify-content:center;z-index:10}
+.db:hover{background:var(--danger);transform:scale(1.15)}
+.btn{background:linear-gradient(135deg,var(--accent-g1),var(--accent-g2));color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:600;cursor:pointer;margin-top:auto;box-shadow:0 6px 20px rgba(59,142,189,0.3);transition:all 0.25s}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 28px rgba(59,142,189,0.4)}
+.btn:disabled{background:#CBD5E0;box-shadow:none;cursor:not-allowed}
+.rw{background:rgba(255,255,255,0.3);border-radius:20px;border:1px solid rgba(255,255,255,0.3);padding:20px;min-height:320px;max-height:480px;overflow-y:auto}
+.em{text-align:center;color:var(--text2);padding:60px 20px;font-size:14px}
+.em .ei{font-size:42px;margin-bottom:14px;display:block;opacity:0.6}
+.rc{background:rgba(255,255,255,0.65);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.5);border-radius:14px;padding:20px;margin-bottom:16px;animation:ci 0.4s ease backwards}
+@keyframes ci{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sn{font-size:14px;font-weight:600}
+.bd{padding:5px 14px;border-radius:8px;font-size:12px;font-weight:700;white-space:nowrap}
+.bc{background:#E8F0F8;color:#5A7A9A;animation:sh 1.5s infinite}
+@keyframes sh{0%,100%{opacity:1}50%{opacity:0.5}}
+.pb{background:rgba(30,45,61,0.06);height:6px;border-radius:3px;overflow:hidden;margin-bottom:12px}
+.pf{height:100%;border-radius:3px;transition:width 1.2s,background 0.6s}
+.pf.pu{animation:pu 1.5s infinite;background:#CBD5E0!important}
+@keyframes pu{0%,100%{opacity:0.5}50%{opacity:0.9}}
+.ml{font-size:14px;margin-bottom:8px}
+.at{font-size:13px;line-height:1.7;padding-top:8px;border-top:1px dashed rgba(0,0,0,0.06);color:var(--text2)}
+.ov{position:fixed;inset:0;background:rgba(245,240,235,0.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:1000}
+.ov.on{display:flex}
+.sp{width:48px;height:48px;border:3px solid #ddd;border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.dbg{position:fixed;top:0;left:0;right:0;background:#1a1a2e;color:#0f0;font-size:11px;font-family:monospace;padding:4px 12px;z-index:9999;display:flex;justify-content:space-between;max-height:80px;overflow-y:auto}.dbg .er{color:#f44}
+@media(max-width:768px){.app{padding:24px}.ws{flex-direction:column;gap:24px}.btn{width:100%;padding:18px}.hd h1{font-size:20px}}
+@media(prefers-reduced-motion:reduce){*,*::after,*::before{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+</style>
+</head>
+<body>
+
+<div class="dbg"><span id="dbs">&#9679;</span><span id="dbi"></span></div>
+<div class="ov" id="ov"><div class="sp"></div><p style="margin-top:20px;font-size:14px;color:var(--text2)" id="om"></p><p style="margin-top:8px;font-size:12px;color:var(--text3)" id="op"></p></div>
+
+<div class="app">
+<div class="hd">
+<div><h1 id="lt"></h1><p id="ls"></p></div>
+<select class="sel" id="lg"><option value="zh">中文</option><option value="en">English</option><option value="ko">한국어</option></select>
+</div>
+<div class="ws">
+<div class="pl">
+<div class="pt"><span>&#x1F4E5;</span><span id="ll"></span></div>
+<div class="uc" id="dz"><span class="ic">&#x1F4F7;</span><p id="lu"></p><p style="font-size:11px;margin-top:4px;opacity:0.6">JPG · PNG · WEBP</p><input type="file" id="fi" multiple accept="image/*"></div>
+<div class="pv" id="pv"></div>
+<button class="btn" id="bs" disabled onclick="go()"></button>
+</div>
+<div class="pr">
+<div class="pt"><span>&#x1F4C4;</span><span id="lr"></span></div>
+<div class="rw" id="rb"><div class="em"><span class="ei">&#x1F3E5;</span><span id="le"></span></div></div>
+</div>
+</div>
+</div>
+
+<script>
+(function(){'use strict';
+var D=document,DB=D.getElementById('dbs'),DBI=D.getElementById('dbi');
+function L(m){try{DBI.textContent='['+new Date().toLocaleTimeString()+'] '+m;console.log('[OK]',m)}catch(e){console.log(m)}}
+function E(m){try{DB.innerHTML='<span class="er">&#9679; ERR</span>';DBI.textContent=m;console.error('[ERR]',m)}catch(e){console.error(m)}}
+try{DB.textContent='&#9679; JS OK';L('Start')}catch(e){}
+
+var LG='zh';
+var T={
+zh:{t:'智能皮肤皮损辅助筛查系统',s:'设备端AI推理 · 数据绝不出浏览器',l:'1. 批量导入影像照片',u:'点击选择多张照片，或直接拖拽文件至此',b:'启动智能化分析',br:'AI 分析中...',r:'2. AI 影像辅助评估报告',e:'暂无数据，请在左侧导入图片并点击检测',p:'恶性黑色素瘤概率测算',lo:'形态平稳 (低风险)',md:'密切观察 (中风险)',hi:'建议就医 (高风险)',co:'计算中...',la:'目前未见明显的恶性病变特征。形态较为对称，请您不必过于担心。日常注意防晒防紫外线，保持愉悦心态，定期随访观察即可。',ma:'皮损提取特征展现出轻微的非对称性或边界模糊。请保持理性的心态，AI工具仅供日常生活预防参考，温柔地建议您可在近期方便时，前往正规皮肤科进行视诊或常规皮肤镜检查。',ha:'系统捕捉到相对明显的形态学异形性结构指标。请您千万不要过度恐慌、焦虑。AI初筛结果绝非最终临床诊断。为了您的身体绝对安全，建议您尽快前往正规三甲医院皮肤科让专科医生面诊，安排皮肤镜或病理切片活检以排除隐患。',ld:'正在加载 AI 模型...',lk:'AI 模型已就绪',le:'模型加载失败，请刷新页面重试'},
+en:{t:'Skin Lesion Intelligent AI Screening Station',s:'On-Device AI · Data Never Leaves Your Browser',l:'1. Batch Import Skin Images',u:'Click to select photos, or drag & drop files here',b:'Launch AI Analysis',br:'Analyzing...',r:'2. AI Assessment Reports',e:'No data. Import images and click analyze.',p:'Calculated Melanoma Probability',lo:'Stable Morphology (Low Risk)',md:'Observation Suggested (Medium Risk)',hi:'Consultation Advised (High Risk)',co:'Computing...',la:'No distinctive signs of malignancy detected at present. The lesion exhibits symmetry. Please remain at ease, protect your skin from intense UV rays, and maintain routine tracking.',ma:'The extracted features present mild asymmetry or fuzzy borders. Please keep a calm state of mind. AI is for reference only. Consider visiting a dermatologist at your convenience for a standard dermoscopy exam.',ha:'The system captured distinct morphological anomalies. Please do not panic or worry excessively. AI screening is not a clinical diagnosis. For your absolute health and safety, please promptly visit a dermatologist for formal examination.',ld:'Loading AI Model...',lk:'AI Model Ready',le:'Model load failed. Please refresh.'},
+ko:{t:'피부 병변 AI 임상 보조 스크리닝',s:'온디바이스 AI · 데이터 유출 없음',l:'1. 피부 영상 일괄 업로드',u:'클릭하여 여러 장의 사진을 선택하거나 드래그하세요',b:'AI 분석 시작',br:'분석 중...',r:'2. AI 영상 보조 진단 보고서',e:'데이터가 없습니다. 이미지를 업로드 후 분석을 진행해 주세요.',p:'흑색종 유효 확률',lo:'안정적 형태 (저위험)',md:'관찰 요망 (중위험)',hi:'진료 권장 (고위험)',co:'계산 중...',la:'현재 뚜렷한 악성 병변 징후는 관찰되지 않으며 형태가 비교적 대칭적입니다. 안심하셔도 좋으며 일상적인 자외선 차단에 유의하시고 주기적으로 관찰해 주시기 바랍니다.',ma:'피부 병변에서 경미한 비대칭성 또는 경계 모호성이 감지되었습니다. 편안한 마음을 유지하시되 AI는 참고용입니다. 조만간 피부과 방문을 권장합니다.',ha:'형태학적 이상 지표가 포착되었습니다. 당황하지 마세요. AI 판정은 최종 진단이 아닙니다. 가능한 빨리 피부과 전문의 진료를 받으세요.',ld:'AI 모델 로딩 중...',lk:'AI 모델 준비 완료',le:'모델 로드 실패. 새로고침 하세요.'}
+};
+function X(k){return(T[LG]&&T[LG][k])||T['en'][k]||k}
+function UL(){try{D.getElementById('lt').textContent=X('t');D.getElementById('ls').textContent=X('s');D.getElementById('ll').textContent=X('l');D.getElementById('lu').textContent=X('u');D.getElementById('lr').textContent=X('r');var b=D.getElementById('bs');if(b)b.textContent=X('b');D.getElementById('om').textContent=X('ld');D.getElementById('le').textContent=X('e')}catch(e){}}
+D.getElementById('lg').addEventListener('change',function(e){LG=e.target.value;UL()});UL();L('I18N OK');
+
+var F=[],M=null,ML=false,MP=null,PP=null,AN=false;
+function AF(fl){try{var im=Array.from(fl).filter(function(f){return f.type.indexOf('image/')===0});if(!im.length)return;F=F.concat(im);L('+'+im.length+' files, total='+F.length);RP()}catch(e){E('AF:'+e.message)}}
+function RF(i){try{F.splice(i,1);RP()}catch(e){}}
+function RP(){try{var b=D.getElementById('pv');b.innerHTML='';for(var i=0;i<F.length;i++){(function(j){var f=F[j],d=D.createElement('div');d.className='pi';var im=D.createElement('img');im.src=URL.createObjectURL(f);im.alt=f.name;var dl=D.createElement('button');dl.className='db';dl.textContent='x';dl.onclick=function(e){e.stopPropagation();URL.revokeObjectURL(im.src);RF(j)};d.appendChild(im);d.appendChild(dl);b.appendChild(d)})(i)}D.getElementById('bs').disabled=(F.length===0);L('Preview:'+F.length)}catch(e){E('RP:'+e.message)}}
+try{var dz=D.getElementById('dz'),fi=D.getElementById('fi');dz.addEventListener('click',function(){fi.click()});fi.addEventListener('change',function(){AF(this.files);this.value=''});['dragenter','dragover','dragleave','drop'].forEach(function(e){dz.addEventListener(e,function(ev){ev.preventDefault();ev.stopPropagation()});D.body.addEventListener(e,function(ev){ev.preventDefault();ev.stopPropagation()})});['dragenter','dragover'].forEach(function(e){dz.addEventListener(e,function(){dz.classList.add('go')})});['dragleave','drop'].forEach(function(e){dz.addEventListener(e,function(){dz.classList.remove('go')})});dz.addEventListener('drop',function(e){AF(e.dataTransfer.files)});L('DD OK')}catch(e){E('DD:'+e.message)}
+
+var CDN='./tfjs_model/';
+async function LP(){if(PP)return PP;try{L('Fetch preprocess...');var r=await fetch('./tfjs_model/preprocess.json');if(!r.ok)throw new Error('HTTP '+r.status);PP=await r.json();L('Preprocess OK')}catch(e){E('Prep:'+e.message);PP={combined_scale:[0.0171248,0.017507,0.0174292],combined_offset:[-2.1179,-2.0357,-1.8044]}}return PP}
+function SO(m){try{D.getElementById('ov').classList.add('on');D.getElementById('op').textContent=m||''}catch(e){}}
+function HO(){try{D.getElementById('ov').classList.remove('on')}catch(e){}}
+function SP(p){try{D.getElementById('op').textContent=p}catch(e){}}
+function SM(m){try{D.getElementById('om').textContent=m}catch(e){}}
+
+// Model loading: use TF.js built-in loader (handles float16 shards natively)
+async function loadModel(){
+if(M){L('Cached');return M}if(MP){L('In progress');return MP}
+ML=true;L('Loading model from CDN...');
+MP=(async function(){SO('0%');SM(X('ld'));
+try{if(typeof tf==='undefined')throw new Error('TF.js missing!');
+var st=Date.now();
+L('Downloading model (~17 MB), this is fast...');
+SM('Downloading weights...');SP('This should take 10-30 seconds');
+M=await tf.loadGraphModel('./tfjs_model/model.json',{onProgress:function(f){var p=Math.round(f*100);var mb=(f*17).toFixed(1);SP(p+'% ('+mb+' MB / ~17 MB)')}});
+L('Weights downloaded, now compiling model graph...');
+SM('Compiling model...');SP('This may take 1-5 minutes, please WAIT');
+await new Promise(function(r){setTimeout(r,100)});
+var elap=((Date.now()-st)/1000).toFixed(1);L('Ready in '+elap+'s');
+SM('Model ready! ('+elap+'s)');SP('Warming up...');
+await new Promise(function(r){setTimeout(r,50)});
+var d=tf.zeros([1,224,224,3]),w=M.predict(d);L('Warmup:'+w.dataSync()[0]);w.dispose();d.dispose();
+SM(X('lk'));SP('Ready');setTimeout(HO,1500);ML=false;return M;
+}catch(e){E('LOAD FAILED: '+(e.message||e));SM('ERROR');SP((e.message||'').substring(0,80));MP=null;M=null;ML=false;throw e}
+})();return MP}
+
+async function pred(file){var m=await loadModel();L('Proc:'+file.name);
+var img=await createImageBitmap(file),c=D.createElement('canvas');c.width=224;c.height=224;c.getContext('2d').drawImage(img,0,0,224,224);img.close();
+var inp=tf.browser.fromPixels(c).expandDims(0).toFloat();
+var out=m.predict(inp),p=out.dataSync()[0];
+inp.dispose();out.dispose();c.width=0;c.height=0;
+return Math.min(Math.max(p,0),1)}
+
+window.go=async function(){L('=== GO ===');if(AN)return;if(!F.length){alert(X('e'));return}AN=true;
+var bt=D.getElementById('bs');bt.disabled=true;bt.textContent=X('br');var rb=D.getElementById('rb');rb.innerHTML='';
+for(var i=0;i<F.length;i++){(function(j){var cd=D.createElement('div');cd.className='rc';cd.id='c'+j;
+cd.innerHTML='<div class="rh"><span class="sn">#'+(j+1)+' '+F[j].name.substring(0,18)+'</span><span class="bd bc" id="b'+j+'">'+X('co')+'</span></div><div class="ml"><span>'+X('p')+'</span>: <strong id="p'+j+'">--%</strong></div><div class="pb"><div class="pf pu" id="f'+j+'" style="width:100%"></div></div><div class="at" id="a'+j+'">Wait...</div>';rb.appendChild(cd)})(i)}
+try{L('Loading...');await loadModel();L('Inferring...');
+for(var i=0;i<F.length;i++){D.getElementById('a'+i).textContent='Proc '+(i+1)+'/'+F.length;
+try{var prob=await pred(F[i]);L('R['+i+']='+(prob*100).toFixed(1)+'%');RR(i,prob)}catch(e2){E('Img'+i+':'+e2.message);var bg=D.getElementById('b'+i);if(bg){bg.className='bd';bg.style.background='#FDF0EE';bg.style.color='#D4736A';bg.textContent='ERR'}var av=D.getElementById('a'+i);if(av)av.textContent='Error:'+(e2.message||'');var fl=D.getElementById('f'+i);if(fl){fl.classList.remove('pu');fl.style.width='0%'}}
+await new Promise(function(r){setTimeout(r,20)})
+}}catch(e){E('Fatal:'+e.message);rb.innerHTML='<div class="rc" style="border:2px solid #D4736A"><div class="rh"><span class="sn" style="color:#D4736A">FAILED</span></div><div class="at" style="color:#D4736A">'+(e.message||'Unknown')+'</div></div>'}
+bt.disabled=false;bt.textContent=X('b');AN=false}
+
+function RR(i,p){var pct=(p*100).toFixed(1),d=T[LG]||T['en'],bt,fc,at;
+if(p>=0.85){bt=d.hi;fc='#D4736A';at=d.ha;try{var b=D.getElementById('b'+i);b.style.background='#FDF0EE';b.style.color='#D4736A'}catch(e){}}else if(p>=0.75){bt=d.md;fc='#E89B3C';at=d.ma;try{var b=D.getElementById('b'+i);b.style.background='#FEF6EC';b.style.color='#E89B3C'}catch(e){}}else{bt=d.lo;fc='#3CAD7A';at=d.la;try{var b=D.getElementById('b'+i);b.style.background='#E8F7F0';b.style.color='#3CAD7A'}catch(e){}}
+var be=D.getElementById('b'+i);if(be){be.className='bd';be.textContent=bt}var pe=D.getElementById('p'+i);if(pe)pe.textContent=pct+'%';var fe=D.getElementById('f'+i);if(fe){fe.classList.remove('pu');fe.style.width=pct+'%';fe.style.background=fc}var ae=D.getElementById('a'+i);if(ae)ae.textContent=at}
+
+function init(){try{L('Init...');UL();LP().then(function(){L('Prep ready')});L('Ready')}catch(e){E('Init:'+e.message)}}
+if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',init);else init()
+})();
+</script>
+</body>
+</html>
