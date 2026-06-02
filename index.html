@@ -21,7 +21,7 @@ body{font-family:"Noto Sans SC",Inter,sans-serif;background:linear-gradient(135d
 .uc.go{background:rgba(255,255,255,0.9);border-color:var(--accent);border-style:solid;transform:scale(1.015)}
 .ic{font-size:40px;margin-bottom:14px;display:inline-block}.uc p{font-size:14px;color:var(--text2)}
 #fi{display:none}
-.pv{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:12px;margin-top:18px;max-height:180px;overflow-y:auto}
+.pv{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;margin-top:18px;max-height:260px;overflow-y:auto}
 .pi{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid rgba(255,255,255,0.75);box-shadow:0 1px 3px rgba(30,45,61,0.04);transition:all 0.3s}
 .pi:hover{transform:scale(1.05)}.pi img{width:100%;height:100%;object-fit:cover}
 .pi:hover .db{opacity:1}
@@ -49,6 +49,20 @@ body{font-family:"Noto Sans SC",Inter,sans-serif;background:linear-gradient(135d
 .ds{margin-top:16px;padding:14px 16px;background:rgba(255,255,255,0.45);border-radius:12px;border:1px solid rgba(0,0,0,0.05)}
 .dw{display:block;font-size:13px;font-weight:600;color:#D4736A;margin-bottom:8px;line-height:1.6}
 .dc{display:block;font-size:11px;color:var(--text2);line-height:1.5;opacity:0.8}
+.pw{display:flex;flex-direction:column;gap:3px}
+.pni{width:100%;border:1px solid rgba(0,0,0,0.1);border-radius:6px;padding:3px 6px;font-size:11px;font-family:inherit;background:rgba(255,255,255,0.5);outline:none}.pni:focus{border-color:var(--accent)}
+.rhmi{width:100%;max-width:160px;border-radius:8px;margin-top:8px;display:block;border:1px solid rgba(0,0,0,0.08)}
+.hbt{width:100%;margin-top:12px;padding:10px;border:1px solid rgba(0,0,0,0.08);border-radius:12px;background:rgba(255,255,255,0.45);cursor:pointer;font-size:13px;font-family:inherit;color:var(--text2)}
+.hbt:hover{background:rgba(255,255,255,0.7)}
+.hp{background:rgba(255,255,255,0.4);border-radius:12px;margin-top:8px;max-height:300px;overflow-y:auto;padding:8px}
+.hi{display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid rgba(0,0,0,0.05);font-size:12px}
+.hi:last-child{border-bottom:none}
+.hi img{width:40px;height:40px;border-radius:6px;object-fit:cover}
+.hd1{flex:1;min-width:0}.hd2{text-align:right;white-space:nowrap}
+.hn{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hdt{font-size:10px;opacity:0.6}
+.hp .hc{text-align:center;padding:8px}
+.hc button{background:none;border:1px solid rgba(0,0,0,0.15);border-radius:8px;padding:4px 12px;font-size:11px;cursor:pointer;color:var(--text2)}
 .ov{position:fixed;inset:0;background:rgba(245,240,235,0.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:1000}
 .ov.on{display:flex}
 .sp{width:48px;height:48px;border:3px solid #ddd;border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
@@ -71,7 +85,7 @@ body{font-family:"Noto Sans SC",Inter,sans-serif;background:linear-gradient(135d
 <div class="ws">
 <div class="pl">
 <div class="pt"><span>&#x1F4E5;</span><span id="ll"></span></div>
-<div class="uc" id="dz"><span class="ic">&#x1F4F7;</span><p id="lu"></p><p style="font-size:11px;margin-top:4px;opacity:0.6">JPG · PNG · WEBP</p><input type="file" id="fi" multiple accept="image/*"></div>
+<div class="uc" id="dz"><span class="ic">&#x1F4F7;</span><p id="lu"></p><p style="font-size:11px;margin-top:4px;opacity:0.6">JPG · PNG · WEBP</p><input type="file" id="fi" multiple accept="image/*" capture="environment"></div>
 <div class="pv" id="pv"></div>
 <button class="btn" id="bs" disabled onclick="go()"></button>
 </div>
@@ -79,6 +93,8 @@ body{font-family:"Noto Sans SC",Inter,sans-serif;background:linear-gradient(135d
 <div class="pt"><span>&#x1F4C4;</span><span id="lr"></span></div>
 <div class="rw" id="rb"><div class="em"><span class="ei">&#x1F3E5;</span><span id="le"></span></div></div>
 <div class="ds"><span class="dw" id="dw"></span><span class="dc" id="dc"></span></div>
+<button class="hbt" id="hb" onclick="TH()"><span id="lhb"></span></button>
+<div class="hp" id="hp" style="display:none"></div>
 </div>
 </div>
 </div>
@@ -92,18 +108,21 @@ try{DB.textContent='&#9679; JS OK';L('Start')}catch(e){}
 
 var LG='zh';
 var T={
-zh:{t:'智能皮肤皮损辅助筛查系统',s:'设备端AI推理 · 数据绝不出浏览器',l:'1. 批量导入影像照片',u:'点击选择多张照片，或直接拖拽文件至此',b:'启动智能化分析',br:'AI 分析中...',r:'2. AI 影像辅助评估报告',e:'暂无数据，请在左侧导入图片并点击检测',p:'恶性黑色素瘤概率测算',lo:'形态平稳 (低风险)',md:'密切观察 (中风险)',hi:'建议就医 (高风险)',co:'计算中...',la:'目前未见明显恶性病变特征。皮损形态对称、边缘规则、颜色均匀，请您不必过于担心。日常注意防晒防紫外线，保持愉悦心态，定期随访观察即可。',ma:'皮损特征呈现轻微不对称、边缘欠规则或颜色欠均匀。请保持理性心态，AI仅供日常预防参考，建议近期方便时前往正规皮肤科进行视诊或皮肤镜检查。',ha:'系统捕捉到较明显的形态学异形性：不对称、边缘不规则、颜色不均匀等特征。请您切勿过度恐慌，AI初筛绝非最终临床诊断。为健康安全计，建议尽快前往正规三甲医院皮肤科让专科医生面诊，安排皮肤镜或病理活检以排除隐患。',dc:'⚠️ 医学免责声明：本工具仅为AI辅助参考，不构成医疗诊断。所有分析结果不能替代专业医生的临床判断。最终诊断以正规医院皮肤科医生面诊结果为准。',dw:'🚨 如皮损近期出现大小、形状、颜色改变，或隆起、破溃、出血、瘙痒、疼痛等，请及时就医。',ld:'正在加载 AI 模型...',lk:'AI 模型已就绪',le:'模型加载失败，请刷新页面重试'},
-en:{t:'Skin Lesion Intelligent AI Screening Station',s:'On-Device AI · Data Never Leaves Your Browser',l:'1. Batch Import Skin Images',u:'Click to select photos, or drag & drop files here',b:'Launch AI Analysis',br:'Analyzing...',r:'2. AI Assessment Reports',e:'No data. Import images and click analyze.',p:'Calculated Melanoma Probability',lo:'Stable Morphology (Low Risk)',md:'Observation Suggested (Medium Risk)',hi:'Consultation Advised (High Risk)',co:'Computing...',la:'No clear signs of malignancy. The lesion appears symmetric with regular borders and uniform color — reassuring. Protect skin from UV, maintain routine self-checks.',ma:'Mild asymmetry, border irregularity, or color variation detected. Stay calm — AI is for reference only. Consider visiting a dermatologist at your convenience for a dermoscopy exam.',ha:'Significant morphological anomalies captured: asymmetry, irregular borders, color variation. Do not panic — AI screening is not a clinical diagnosis. Please promptly visit a dermatologist for formal examination including dermoscopy or biopsy.',dc:'⚠️ Medical Disclaimer: This tool provides AI-assisted reference only and does NOT constitute a medical diagnosis. Results cannot replace professional clinical judgment. Final diagnosis rests with a qualified dermatologist.',dw:'🚨 If the lesion has recently changed in size, shape, or color, or shows elevation, ulceration, bleeding, itching, or pain — seek immediate medical attention.',ld:'Loading AI Model...',lk:'AI Model Ready',le:'Model load failed. Please refresh.'},
-ko:{t:'피부 병변 AI 임상 보조 스크리닝',s:'온디바이스 AI · 데이터 유출 없음',l:'1. 피부 영상 일괄 업로드',u:'클릭하여 여러 장의 사진을 선택하거나 드래그하세요',b:'AI 분석 시작',br:'분석 중...',r:'2. AI 영상 보조 진단 보고서',e:'데이터가 없습니다. 이미지를 업로드 후 분석을 진행해 주세요.',p:'흑색종 유효 확률',lo:'안정적 형태 (저위험)',md:'관찰 요망 (중위험)',hi:'진료 권장 (고위험)',co:'계산 중...',la:'악성 병변의 뚜렷한 징후는 보이지 않습니다. 병변은 대칭적이고 경계가 규칙적이며 색상이 균일합니다. 안심하시고 자외선 차단에 유의하며 주기적으로 관찰하세요.',ma:'경미한 비대칭, 경계 불규칙성 또는 색상 불균일이 감지되었습니다. AI는 참고용이오니 진정하시고, 편하신 때 피부과를 방문하여 검진 받으시길 권장합니다.',ha:'뚜렷한 형태학적 이상이 포착되었습니다: 비대칭, 불규칙한 경계, 색상 불균일. 당황하지 마세요 — AI 진단이 아닙니다. 피부과 전문의를 방문하시어 피부경 검사 또는 조직검사를 받으시길 권장합니다.',dc:'⚠️ 의학적 면책: 본 도구는 AI 보조 참고용일 뿐 의학적 진단을 구성하지 않습니다. 결과는 전문의의 임상적 판단을 대체할 수 없습니다. 최종 진단은 피부과 전문의에게 받으세요.',dw:'🚨 병변의 크기, 모양, 색상이 최근 변했거나 융기, 궤양, 출혈, 가려움, 통증이 있다면 즉시 피부과 진료를 받으세요.',ld:'AI 모델 로딩 중...',lk:'AI 모델 준비 완료',le:'모델 로드 실패. 새로고침 하세요.'}
+zh:{t:'智能皮肤皮损辅助筛查系统',s:'设备端AI推理 · 数据绝不出浏览器',l:'1. 批量导入影像照片',u:'点击选择多张照片，或直接拖拽文件至此',b:'启动智能化分析',br:'AI 分析中...',r:'2. AI 影像辅助评估报告',e:'暂无数据，请在左侧导入图片并点击检测',p:'恶性黑色素瘤概率测算',lo:'形态平稳 (低风险)',md:'密切观察 (中风险)',hi:'建议就医 (高风险)',co:'计算中...',la:'目前未见明显恶性病变特征。皮损形态对称、边缘规则、颜色均匀，请您不必过于担心。日常注意防晒防紫外线，保持愉悦心态，定期随访观察即可。',ma:'皮损特征呈现轻微不对称、边缘欠规则或颜色欠均匀。请保持理性心态，AI仅供日常预防参考，建议近期方便时前往正规皮肤科进行视诊或皮肤镜检查。',ha:'系统捕捉到较明显的形态学异形性：不对称、边缘不规则、颜色不均匀等特征。请您切勿过度恐慌，AI初筛绝非最终临床诊断。为健康安全计，建议尽快前往正规三甲医院皮肤科让专科医生面诊，安排皮肤镜或病理活检以排除隐患。',dc:'⚠️ 医学免责声明：本工具仅为AI辅助参考，不构成医疗诊断。所有分析结果不能替代专业医生的临床判断。最终诊断以正规医院皮肤科医生面诊结果为准。',dw:'🚨 如皮损近期出现大小、形状、颜色改变，或隆起、破溃、出血、瘙痒、疼痛等，请及时就医。',nt:'备注',hb:'📋 历史记录',nh:'暂无历史记录',ch:'清除全部记录',cq:'确认清除全部历史记录？',ht:'🔥 AI关注区域 (Saliency Map)',ld:'正在加载 AI 模型...',lk:'AI 模型已就绪',le:'模型加载失败，请刷新页面重试'},
+en:{t:'Skin Lesion Intelligent AI Screening Station',s:'On-Device AI · Data Never Leaves Your Browser',l:'1. Batch Import Skin Images',u:'Click to select photos, or drag & drop files here',b:'Launch AI Analysis',br:'Analyzing...',r:'2. AI Assessment Reports',e:'No data. Import images and click analyze.',p:'Calculated Melanoma Probability',lo:'Stable Morphology (Low Risk)',md:'Observation Suggested (Medium Risk)',hi:'Consultation Advised (High Risk)',co:'Computing...',la:'No clear signs of malignancy. The lesion appears symmetric with regular borders and uniform color — reassuring. Protect skin from UV, maintain routine self-checks.',ma:'Mild asymmetry, border irregularity, or color variation detected. Stay calm — AI is for reference only. Consider visiting a dermatologist at your convenience for a dermoscopy exam.',ha:'Significant morphological anomalies captured: asymmetry, irregular borders, color variation. Do not panic — AI screening is not a clinical diagnosis. Please promptly visit a dermatologist for formal examination including dermoscopy or biopsy.',dc:'⚠️ Medical Disclaimer: This tool provides AI-assisted reference only and does NOT constitute a medical diagnosis. Results cannot replace professional clinical judgment. Final diagnosis rests with a qualified dermatologist.',dw:'🚨 If the lesion has recently changed in size, shape, or color, or shows elevation, ulceration, bleeding, itching, or pain — seek immediate medical attention.',nt:'Note',hb:'📋 History',nh:'No history yet',ch:'Clear All History',cq:'Clear all history records?',ht:'🔥 AI Focus (Saliency Map)',ld:'Loading AI Model...',lk:'AI Model Ready',le:'Model load failed. Please refresh.'},
+ko:{t:'피부 병변 AI 임상 보조 스크리닝',s:'온디바이스 AI · 데이터 유출 없음',l:'1. 피부 영상 일괄 업로드',u:'클릭하여 여러 장의 사진을 선택하거나 드래그하세요',b:'AI 분석 시작',br:'분석 중...',r:'2. AI 영상 보조 진단 보고서',e:'데이터가 없습니다. 이미지를 업로드 후 분석을 진행해 주세요.',p:'흑색종 유효 확률',lo:'안정적 형태 (저위험)',md:'관찰 요망 (중위험)',hi:'진료 권장 (고위험)',co:'계산 중...',la:'악성 병변의 뚜렷한 징후는 보이지 않습니다. 병변은 대칭적이고 경계가 규칙적이며 색상이 균일합니다. 안심하시고 자외선 차단에 유의하며 주기적으로 관찰하세요.',ma:'경미한 비대칭, 경계 불규칙성 또는 색상 불균일이 감지되었습니다. AI는 참고용이오니 진정하시고, 편하신 때 피부과를 방문하여 검진 받으시길 권장합니다.',ha:'뚜렷한 형태학적 이상이 포착되었습니다: 비대칭, 불규칙한 경계, 색상 불균일. 당황하지 마세요 — AI 진단이 아닙니다. 피부과 전문의를 방문하시어 피부경 검사 또는 조직검사를 받으시길 권장합니다.',dc:'⚠️ 의학적 면책: 본 도구는 AI 보조 참고용일 뿐 의학적 진단을 구성하지 않습니다. 결과는 전문의의 임상적 판단을 대체할 수 없습니다. 최종 진단은 피부과 전문의에게 받으세요.',dw:'🚨 병변의 크기, 모양, 색상이 최근 변했거나 융기, 궤양, 출혈, 가려움, 통증이 있다면 즉시 피부과 진료를 받으세요.',nt:'메모',hb:'📋 진단 기록',nh:'기록 없음',ch:'모든 기록 삭제',cq:'모든 기록을 삭제하시겠습니까?',ht:'🔥 AI 집중 영역 (Saliency Map)',ld:'AI 모델 로딩 중...',lk:'AI 모델 준비 완료',le:'모델 로드 실패. 새로고침 하세요.'}
 };
 function X(k){return(T[LG]&&T[LG][k])||T['en'][k]||k}
-function UL(){try{D.getElementById('lt').textContent=X('t');D.getElementById('ls').textContent=X('s');D.getElementById('ll').textContent=X('l');D.getElementById('lu').textContent=X('u');D.getElementById('lr').textContent=X('r');var b=D.getElementById('bs');if(b)b.textContent=X('b');D.getElementById('om').textContent=X('ld');D.getElementById('le').textContent=X('e');D.getElementById('dw').textContent=X('dw');D.getElementById('dc').textContent=X('dc')}catch(e){}}
+function UL(){try{D.getElementById('lt').textContent=X('t');D.getElementById('ls').textContent=X('s');D.getElementById('ll').textContent=X('l');D.getElementById('lu').textContent=X('u');D.getElementById('lr').textContent=X('r');var b=D.getElementById('bs');if(b)b.textContent=X('b');D.getElementById('om').textContent=X('ld');D.getElementById('le').textContent=X('e');D.getElementById('dw').textContent=X('dw');D.getElementById('dc').textContent=X('dc');D.getElementById('lhb').textContent=X('hb');var hp=D.getElementById('hp');if(hp&&hp.style.display!=='none')RH()}catch(e){}}
 D.getElementById('lg').addEventListener('change',function(e){LG=e.target.value;UL()});UL();L('I18N OK');
 
-var F=[],M=null,ML=false,MP=null,PP=null,AN=false;
-function AF(fl){try{var im=Array.from(fl).filter(function(f){return f.type.indexOf('image/')===0});if(!im.length)return;F=F.concat(im);L('+'+im.length+' files, total='+F.length);RP()}catch(e){E('AF:'+e.message)}}
-function RF(i){try{F.splice(i,1);RP()}catch(e){}}
-function RP(){try{var b=D.getElementById('pv');b.innerHTML='';for(var i=0;i<F.length;i++){(function(j){var f=F[j],d=D.createElement('div');d.className='pi';var im=D.createElement('img');im.src=URL.createObjectURL(f);im.alt=f.name;var dl=D.createElement('button');dl.className='db';dl.textContent='x';dl.onclick=function(e){e.stopPropagation();URL.revokeObjectURL(im.src);RF(j)};d.appendChild(im);d.appendChild(dl);b.appendChild(d)})(i)}D.getElementById('bs').disabled=(F.length===0);L('Preview:'+F.length)}catch(e){E('RP:'+e.message)}}
+var F=[],N=[],M=null,ML=false,MP=null,PP=null,AN=false,H=[],HK='ms_hist';
+function LH(){try{var d=localStorage.getItem(HK);if(d){H=JSON.parse(d);if(!Array.isArray(H))H=[]}}catch(e){H=[]}}
+function SH(){try{localStorage.setItem(HK,JSON.stringify(H.slice(0,50)))}catch(e){}}
+LH();
+function AF(fl){try{var im=Array.from(fl).filter(function(f){return f.type.indexOf('image/')===0});if(!im.length)return;F=F.concat(im);for(var k=0;k<im.length;k++)N.push('');L('+'+im.length+' files, total='+F.length);RP()}catch(e){E('AF:'+e.message)}}
+function RF(i){try{F.splice(i,1);N.splice(i,1);RP()}catch(e){}}
+function RP(){try{var b=D.getElementById('pv');b.innerHTML='';for(var i=0;i<F.length;i++){(function(j){var f=F[j],wr=D.createElement('div');wr.className='pw';var d=D.createElement('div');d.className='pi';var im=D.createElement('img');im.src=URL.createObjectURL(f);im.alt=f.name;var dl=D.createElement('button');dl.className='db';dl.textContent='x';dl.onclick=function(e){e.stopPropagation();URL.revokeObjectURL(im.src);RF(j)};d.appendChild(im);d.appendChild(dl);wr.appendChild(d);var ni=D.createElement('input');ni.type='text';ni.className='pni';ni.placeholder=X('nt');ni.value=N[j]||'';ni.addEventListener('input',function(){N[j]=this.value});ni.addEventListener('click',function(e){e.stopPropagation()});wr.appendChild(ni);b.appendChild(wr)})(i)}D.getElementById('bs').disabled=(F.length===0);L('Preview:'+F.length)}catch(e){E('RP:'+e.message)}}
 try{var dz=D.getElementById('dz'),fi=D.getElementById('fi');dz.addEventListener('click',function(){fi.click()});fi.addEventListener('change',function(){AF(this.files);this.value=''});['dragenter','dragover','dragleave','drop'].forEach(function(e){dz.addEventListener(e,function(ev){ev.preventDefault();ev.stopPropagation()});D.body.addEventListener(e,function(ev){ev.preventDefault();ev.stopPropagation()})});['dragenter','dragover'].forEach(function(e){dz.addEventListener(e,function(){dz.classList.add('go')})});['dragleave','drop'].forEach(function(e){dz.addEventListener(e,function(){dz.classList.remove('go')})});dz.addEventListener('drop',function(e){AF(e.dataTransfer.files)});L('DD OK')}catch(e){E('DD:'+e.message)}
 
 var CDN='./tfjs_model/';
@@ -135,11 +154,22 @@ SM(X('lk'));SP('Ready');setTimeout(HO,1500);ML=false;return M;
 })();return MP}
 
 async function pred(file){var m=await loadModel();L('Proc:'+file.name);
-var img=await createImageBitmap(file),c=D.createElement('canvas');c.width=224;c.height=224;c.getContext('2d').drawImage(img,0,0,224,224);img.close();
-var inp=tf.browser.fromPixels(c).expandDims(0).toFloat();
-var out=m.predict(inp),p=out.dataSync()[0];L('RAW probability: '+(p*100).toFixed(2)+'%');
-inp.dispose();out.dispose();c.width=0;c.height=0;
-return Math.min(Math.max(p,0),1)}
+var img=await createImageBitmap(file),c=D.createElement('canvas');c.width=224;c.height=224;
+var mn=Math.min(img.width,img.height),sx=(img.width-mn)/2,sy=(img.height-mn)/2;
+c.getContext('2d').drawImage(img,sx,sy,mn,mn,0,0,224,224);img.close();
+var p=tf.tidy(function(){var inp=tf.browser.fromPixels(c).expandDims(0).toFloat();
+return m.predict(inp).dataSync()[0];});
+L('RAW probability: '+(p*100).toFixed(2)+'%');
+var hm=getHeatmap(c,file);c.width=0;c.height=0;
+return {p:Math.min(Math.max(p,0),1),hm:hm}}
+function getHeatmap(c,file){try{var d=tf.tidy(function(){var inp=tf.browser.fromPixels(c).expandDims(0).toFloat();
+var g=tf.grad(function(x){return M.predict(x);});var grd=g(inp);
+var s=grd.abs().mean(3).squeeze();s=s.sub(s.min()).div(s.max().sub(s.min()).add(1e-7));return s.arraySync()});
+var hc=D.createElement('canvas');hc.width=224;hc.height=224;var ctx=hc.getContext('2d');ctx.drawImage(c,0,0);
+var id=ctx.getImageData(0,0,224,224),px=id.data;
+for(var i=0;i<224*224;i++){var v=d[i],j=i*4,a=Math.min(v,0.6);
+px[j]=px[j]*(1-a)+255*a;px[j+1]=px[j+1]*(1-a)+Math.max(0,(v-0.3))*255/0.7*a;px[j+2]=px[j+2]*(1-a)}
+ctx.putImageData(id,0,0);return hc.toDataURL('image/jpeg',0.6)}catch(e){L('HM err:'+e.message);return null}}
 
 window.go=async function(){L('=== GO ===');if(AN)return;if(!F.length){alert(X('e'));return}AN=true;
 var bt=D.getElementById('bs');bt.disabled=true;bt.textContent=X('br');var rb=D.getElementById('rb');rb.innerHTML='';
@@ -147,15 +177,24 @@ for(var i=0;i<F.length;i++){(function(j){var cd=D.createElement('div');cd.classN
 cd.innerHTML='<div class="rh"><span class="sn">#'+(j+1)+' '+F[j].name.substring(0,18)+'</span><span class="bd bc" id="b'+j+'">'+X('co')+'</span></div><div class="ml"><span>'+X('p')+'</span>: <strong id="p'+j+'">--%</strong></div><div class="pb"><div class="pf pu" id="f'+j+'" style="width:100%"></div></div><div class="at" id="a'+j+'">Wait...</div>';rb.appendChild(cd)})(i)}
 try{L('Loading...');await loadModel();L('Inferring...');
 for(var i=0;i<F.length;i++){D.getElementById('a'+i).textContent='Proc '+(i+1)+'/'+F.length;
-try{var prob=await pred(F[i]);L('R['+i+']='+(prob*100).toFixed(1)+'%');RR(i,prob)}catch(e2){E('Img'+i+':'+e2.message);var bg=D.getElementById('b'+i);if(bg){bg.className='bd';bg.style.background='#FDF0EE';bg.style.color='#D4736A';bg.textContent='ERR'}var av=D.getElementById('a'+i);if(av)av.textContent='Error:'+(e2.message||'');var fl=D.getElementById('f'+i);if(fl){fl.classList.remove('pu');fl.style.width='0%'}}
+try{var res=await pred(F[i]),prob=res.p;L('R['+i+']='+(prob*100).toFixed(1)+'%');RR(i,prob,res.hm,N[i]);
+var h={id:Date.now()+i,date:new Date().toLocaleString(),fileName:F[i].name.substring(0,30),note:N[i]||'',probability:prob,riskLevel:prob>=0.35?'high':prob>=0.15?'medium':'low',thumbnail:res.hm||''};
+if(!h.thumbnail){try{var tc=D.createElement('canvas');tc.width=80;tc.height=80;var tbmp=await createImageBitmap(F[i],{resizeWidth:80,resizeHeight:80,resizeQuality:'high'});tc.getContext('2d').drawImage(tbmp,0,0,80,80);tbmp.close();h.thumbnail=tc.toDataURL('image/jpeg',0.4)}catch(e){}}
+H.unshift(h);if(H.length>50)H.length=50;SH()}catch(e2){E('Img'+i+':'+e2.message);var bg=D.getElementById('b'+i);if(bg){bg.className='bd';bg.style.background='#FDF0EE';bg.style.color='#D4736A';bg.textContent='ERR'}var av=D.getElementById('a'+i);if(av)av.textContent='Error:'+(e2.message||'');var fl=D.getElementById('f'+i);if(fl){fl.classList.remove('pu');fl.style.width='0%'}}
 await new Promise(function(r){setTimeout(r,20)})
 }}catch(e){E('Fatal:'+e.message);rb.innerHTML='<div class="rc" style="border:2px solid #D4736A"><div class="rh"><span class="sn" style="color:#D4736A">FAILED</span></div><div class="at" style="color:#D4736A">'+(e.message||'Unknown')+'</div></div>'}
 bt.disabled=false;bt.textContent=X('b');AN=false}
 
-function RR(i,p){var pct=(p*100).toFixed(1),d=T[LG]||T['en'],bt,fc,at;
+function RR(i,p,hm,note){var pct=(p*100).toFixed(1),d=T[LG]||T['en'],bt,fc,at;
 if(p>=0.35){bt=d.hi;fc='#D4736A';at=d.ha+' (raw:'+(p*100).toFixed(1)+'%)';try{var b=D.getElementById('b'+i);b.style.background='#FDF0EE';b.style.color='#D4736A'}catch(e){}}else if(p>=0.15){bt=d.md;fc='#E89B3C';at=d.ma+' (raw:'+(p*100).toFixed(1)+'%)';try{var b=D.getElementById('b'+i);b.style.background='#FEF6EC';b.style.color='#E89B3C'}catch(e){}}else{bt=d.lo;fc='#3CAD7A';at=d.la+' (raw:'+(p*100).toFixed(1)+'%)';try{var b=D.getElementById('b'+i);b.style.background='#E8F7F0';b.style.color='#3CAD7A'}catch(e){}}
-var be=D.getElementById('b'+i);if(be){be.className='bd';be.textContent=bt}var pe=D.getElementById('p'+i);if(pe)pe.textContent=pct+'%';var fe=D.getElementById('f'+i);if(fe){fe.classList.remove('pu');fe.style.width=pct+'%';fe.style.background=fc}var ae=D.getElementById('a'+i);if(ae)ae.textContent=at}
+var be=D.getElementById('b'+i);if(be){be.className='bd';be.textContent=bt}var pe=D.getElementById('p'+i);if(pe)pe.textContent=pct+'%';var fe=D.getElementById('f'+i);if(fe){fe.classList.remove('pu');fe.style.width=pct+'%';fe.style.background=fc}var ae=D.getElementById('a'+i);if(ae){var ht='';if(note)ht+='<span style="display:block;margin-bottom:4px;font-style:italic;opacity:0.7">'+X('nt')+': '+note.replace(/</g,'&lt;')+'</span>';if(hm)ht+='<div style="margin-bottom:4px;font-size:11px;opacity:0.6">'+X('ht')+'</div><img src="'+hm+'" class="rhmi">';ae.innerHTML=ht+at}}
 
+function TH(){var hp=D.getElementById('hp');if(hp.style.display==='none'){RH();hp.style.display='block'}else{hp.style.display='none'}}
+function RH(){var hp=D.getElementById('hp');if(!H.length){hp.innerHTML='<div class="em" style="padding:20px"><span style="font-size:11px;opacity:0.5">'+X('nh')+'</span></div>';return}
+var h='';for(var i=0;i<Math.min(H.length,20);i++){var e=H[i],rc=e.riskLevel==='high'?'#D4736A':e.riskLevel==='medium'?'#E89B3C':'#3CAD7A',rl=e.riskLevel==='high'?X('hi'):e.riskLevel==='medium'?X('md'):X('lo');
+h+='<div class="hi"><img src="'+(e.thumbnail||'')+'" onerror="this.style.display=\'none\'"><div class="hd1"><div class="hn" title="'+e.fileName.replace(/"/g,'&quot;')+'">'+e.fileName+'</div><div class="hdt">'+e.date+(e.note?' · '+e.note.replace(/</g,'&lt;'):'')+'</div></div><div class="hd2"><span style="color:'+rc+';font-weight:600">'+(e.probability*100).toFixed(1)+'%</span><br><span style="font-size:10px;color:'+rc+'">'+rl+'</span></div></div>'}
+h+='<div class="hc"><button onclick="CH()">'+X('ch')+'</button></div>';hp.innerHTML=h}
+function CH(){if(confirm(X('cq'))){H=[];SH();RH()}}
 function init(){try{L('Init...');UL();LP().then(function(){L('Prep ready')});L('Ready')}catch(e){E('Init:'+e.message)}}
 if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',init);else init()
 })();
