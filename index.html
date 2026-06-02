@@ -81,14 +81,14 @@ body{font-family:"Noto Sans SC",Inter,sans-serif;background:linear-gradient(135d
 <div class="pt"><span>&#x1F4E5;</span><span id="ll"></span></div>
 <div class="uc" id="dz"><span class="ic">&#x1F4F7;</span><p id="lu"></p><p style="font-size:11px;margin-top:4px;opacity:0.6">JPG · PNG · WEBP</p><input type="file" id="fi" multiple accept="image/*"></div>
 <div class="pv" id="pv"></div>
-<button class="clr" id="cl" onclick="CF()" style="display:none"></button>
+<button class="clr" id="cl" style="display:none"></button>
 <button class="btn" id="bs" disabled onclick="go()"></button>
 </div>
 <div class="pr">
 <div class="pt"><span>&#x1F4C4;</span><span id="lr"></span></div>
 <div class="rw" id="rb"><div class="em"><span class="ei">&#x1F3E5;</span><span id="le"></span></div></div>
 <div class="ds"><span class="dw" id="dw"></span><span class="dc" id="dc"></span></div>
-<button class="hbt" id="hb" onclick="TH()"></button>
+<button class="hbt" id="hb"></button>
 <div class="hp" id="hp" style="display:none"></div>
 </div>
 </div>
@@ -117,7 +117,7 @@ function SH(){try{localStorage.setItem(HK,JSON.stringify(H.slice(0,50)))}catch(e
 LH();
 function AF(fl){try{var im=Array.from(fl).filter(function(f){return f.type.indexOf('image/')===0});if(!im.length)return;F=F.concat(im);L('+'+im.length+' files, total='+F.length);RP()}catch(e){E('AF:'+e.message)}}
 function RF(i){try{F.splice(i,1);RP()}catch(e){}}
-window.CF=function(){if(!F.length)return;F=[];RP()}
+function CF(){if(!F.length)return;F=[];RP()}
 function RP(){try{var b=D.getElementById('pv');b.innerHTML='';for(var i=0;i<F.length;i++){(function(j){var f=F[j],d=D.createElement('div');d.className='pi';var im=D.createElement('img');im.src=URL.createObjectURL(f);im.alt=f.name;var dl=D.createElement('button');dl.className='db';dl.textContent='x';dl.onclick=function(e){e.stopPropagation();URL.revokeObjectURL(im.src);RF(j)};d.appendChild(im);d.appendChild(dl);b.appendChild(d)})(i)}D.getElementById('bs').disabled=(F.length===0);D.getElementById('cl').style.display=F.length?'inline-block':'none';L('Preview:'+F.length)}catch(e){E('RP:'+e.message)}}
 try{var dz=D.getElementById('dz'),fi=D.getElementById('fi');dz.addEventListener('click',function(){fi.click()});fi.addEventListener('change',function(){AF(this.files);this.value=''});['dragenter','dragover','dragleave','drop'].forEach(function(e){dz.addEventListener(e,function(ev){ev.preventDefault();ev.stopPropagation()});D.body.addEventListener(e,function(ev){ev.preventDefault();ev.stopPropagation()})});['dragenter','dragover'].forEach(function(e){dz.addEventListener(e,function(){dz.classList.add('go')})});['dragleave','drop'].forEach(function(e){dz.addEventListener(e,function(){dz.classList.remove('go')})});dz.addEventListener('drop',function(e){AF(e.dataTransfer.files)});L('DD OK')}catch(e){E('DD:'+e.message)}
 
@@ -173,13 +173,13 @@ function RR(i,p){var pct=(p*100).toFixed(1),d=T[LG]||T['en'],bt,fc,at;
 if(p>=0.35){bt=d.hi;fc='#D4736A';at=d.ha+' (raw:'+(p*100).toFixed(1)+'%)';try{var b=D.getElementById('b'+i);b.style.background='#FDF0EE';b.style.color='#D4736A'}catch(e){}}else if(p>=0.15){bt=d.md;fc='#E89B3C';at=d.ma+' (raw:'+(p*100).toFixed(1)+'%)';try{var b=D.getElementById('b'+i);b.style.background='#FEF6EC';b.style.color='#E89B3C'}catch(e){}}else{bt=d.lo;fc='#3CAD7A';at=d.la+' (raw:'+(p*100).toFixed(1)+'%)';try{var b=D.getElementById('b'+i);b.style.background='#E8F7F0';b.style.color='#3CAD7A'}catch(e){}}
 var be=D.getElementById('b'+i);if(be){be.className='bd';be.textContent=bt}var pe=D.getElementById('p'+i);if(pe)pe.textContent=pct+'%';var fe=D.getElementById('f'+i);if(fe){fe.classList.remove('pu');fe.style.width=pct+'%';fe.style.background=fc}var ae=D.getElementById('a'+i);if(ae)ae.textContent=at}
 
-window.TH=function(){var hp=D.getElementById('hp');if(hp.style.display==='none'){RH();hp.style.display='block'}else{hp.style.display='none'}}
+function TH(){var hp=D.getElementById('hp');if(hp.style.display==='none'){RH();hp.style.display='block'}else{hp.style.display='none'}}
 function RH(){var hp=D.getElementById('hp');if(!H.length){hp.innerHTML='<div class="em" style="padding:20px"><span style="font-size:11px;opacity:0.5">'+X('nh')+'</span></div>';return}
 var h='';for(var i=0;i<Math.min(H.length,20);i++){var e=H[i],rc=e.r==='high'?'#D4736A':e.r==='medium'?'#E89B3C':'#3CAD7A',rl=e.r==='high'?X('hi'):e.r==='medium'?X('md'):X('lo');
 h+='<div class="hi"><div class="hd1"><div class="hn">'+e.name+'</div><div class="hdt">'+e.date+'</div></div><div class="hd2"><span style="color:'+rc+';font-weight:600">'+(e.p*100).toFixed(1)+'%</span><br><span style="font-size:10px;color:'+rc+'">'+rl+'</span></div></div>'}
 h+='<div class="hc"><button onclick="CH()">'+X('ch')+'</button></div>';hp.innerHTML=h}
 window.CH=function(){if(confirm(X('cq'))){H=[];SH();RH()}}
-function init(){try{L('Init...');UL();LP().then(function(){L('Prep ready')});L('Ready')}catch(e){E('Init:'+e.message)}}
+function init(){try{L('Init...');UL();LP().then(function(){L('Prep ready')});D.getElementById('cl').addEventListener('click',CF);D.getElementById('hb').addEventListener('click',TH);L('Ready')}catch(e){E('Init:'+e.message)}}
 if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',init);else init()
 })();
 </script>
