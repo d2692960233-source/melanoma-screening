@@ -65,6 +65,13 @@ body{font-family:"Noto Sans SC",Inter,sans-serif;background:linear-gradient(135d
 @media(max-width:768px){.app{padding:24px}.ws{flex-direction:column;gap:24px}.btn{width:100%;padding:18px}.hd h1{font-size:20px}}
 @media(prefers-reduced-motion:reduce){*,*::after,*::before{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
 </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16213e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SkinCheck AI">
+<link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
 
@@ -183,5 +190,6 @@ function init(){try{L('Init...');UL();LP().then(function(){L('Prep ready')});D.g
 if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',init);else init()
 })();
 </script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(function(r){console.log('[PWA] SW registered:',r.scope)}).catch(function(e){console.log('[PWA] SW failed:',e)})}</script>
 </body>
 </html>
