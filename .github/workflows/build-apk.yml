@@ -116,6 +116,7 @@ jobs:
           pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
           dependencyResolutionManagement { repositories { google(); mavenCentral() } }
           rootProject.name = 'SkinCheckAI'
+          include ':app'
           EOF
 
           # gradle.properties
