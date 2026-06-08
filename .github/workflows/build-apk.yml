@@ -9,90 +9,53 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      - uses: actions/setup-java@v4
+        with: { distribution: 'temurin', java-version: '17' }
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: 'platforms;android-34 build-tools;34.0.0 platform-tools'
-
-      - name: Print SDK path
+      - name: Install Android SDK
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          ls "$ANDROID_HOME" 2>/dev/null || echo "ANDROID_HOME not found"
-          ls "$ANDROID_SDK_ROOT" 2>/dev/null || echo "ANDROID_SDK_ROOT not found"
+          # Download cmdline-tools
+          curl -sL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/sdk.zip
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          unzip -q /tmp/sdk.zip -d /tmp/sdk-tmp
+          mv /tmp/sdk-tmp/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+          # Set env
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+          # Accept licenses and install packages
+          yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "build-tools;34.0.0" "platforms;android-34"
 
-      - name: Create Capacitor project
+      - name: Build Capacitor APK
         run: |
-          mkdir -p app_build
-          cd app_build
+          # Create project
+          mkdir app_build && cd app_build
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
-
-      - name: Configure Capacitor
-        run: |
-          cd app_build
-          cat > capacitor.config.json << 'EOF'
-          {
-            "appId": "com.skincheck.ai",
-            "appName": "SkinCheck AI",
-            "webDir": "www",
-            "bundledWebRuntime": false
-          }
-          EOF
-
-      - name: Copy web files
-        run: |
-          cd app_build
-          mkdir -p www
+          # Config
+          echo '{"appId":"com.skincheck.ai","appName":"SkinCheck AI","webDir":"www"}' > capacitor.config.json
+          # Copy web files
+          mkdir www
           cp ../index.html www/
           cp ../worker.js www/
-          cp ../test.html www/ 2>/dev/null || true
           cp ../manifest.json www/ 2>/dev/null || true
           cp ../sw.js www/ 2>/dev/null || true
           cp -r ../tfjs_model www/
           cp ../icon-192.png www/ 2>/dev/null || true
           cp ../icon-512.png www/ 2>/dev/null || true
-          ls -la www/
-
-      - name: Add Android platform
-        run: |
-          cd app_build
+          # Add Android
           npx cap add android
+          # Set SDK path
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          # Build
+          cd android && chmod +x gradlew && ./gradlew assembleDebug
 
-      - name: Configure Gradle SDK path
-        run: |
-          cd app_build/android
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          echo "android.useAndroidX=true" >> gradle.properties 2>/dev/null || true
-          cat local.properties
-
-      - name: Accept Android licenses
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
-          yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses 2>/dev/null || true
-
-      - name: Build APK
-        run: |
-          cd app_build/android
-          chmod +x gradlew 2>/dev/null || true
-          ./gradlew assembleDebug --stacktrace
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: SkinCheck-AI-APK
           path: app_build/android/app/build/outputs/apk/debug/app-debug.apk
