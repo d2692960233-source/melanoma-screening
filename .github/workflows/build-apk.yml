@@ -11,51 +11,176 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with: { node-version: '20' }
-
       - uses: actions/setup-java@v4
         with: { distribution: 'temurin', java-version: '17' }
 
-      - name: Install Android SDK
+      - name: Setup Android SDK
         run: |
-          # Download cmdline-tools
           curl -sL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/sdk.zip
           mkdir -p $HOME/android-sdk/cmdline-tools
           unzip -q /tmp/sdk.zip -d /tmp/sdk-tmp
           mv /tmp/sdk-tmp/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
-          # Set env
           echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-          # Accept licenses and install packages
           yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
           $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "build-tools;34.0.0" "platforms;android-34"
 
-      - name: Build Capacitor APK
+      - name: Create Android Project
         run: |
-          # Create project
-          mkdir app_build && cd app_build
-          npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          # Config
-          echo '{"appId":"com.skincheck.ai","appName":"SkinCheck AI","webDir":"www"}' > capacitor.config.json
-          # Copy web files
-          mkdir www
-          cp ../index.html www/
-          cp ../worker.js www/
-          cp ../manifest.json www/ 2>/dev/null || true
-          cp ../sw.js www/ 2>/dev/null || true
-          cp -r ../tfjs_model www/
-          cp ../icon-192.png www/ 2>/dev/null || true
-          cp ../icon-512.png www/ 2>/dev/null || true
-          # Add Android
-          npx cap add android
-          # Set SDK path
-          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
-          # Build
-          cd android && chmod +x gradlew && ./gradlew assembleDebug
+          mkdir -p SkinCheckAI/app/src/main/java/com/skincheck/ai
+          mkdir -p SkinCheckAI/app/src/main/res/values
+          mkdir -p SkinCheckAI/app/src/main/res/drawable
+          mkdir -p SkinCheckAI/app/src/main/assets
+          mkdir -p SkinCheckAI/gradle/wrapper
+
+          # Copy website files into assets
+          cp index.html SkinCheckAI/app/src/main/assets/
+          cp worker.js SkinCheckAI/app/src/main/assets/
+          cp manifest.json SkinCheckAI/app/src/main/assets/ 2>/dev/null || true
+          cp sw.js SkinCheckAI/app/src/main/assets/ 2>/dev/null || true
+          cp -r tfjs_model SkinCheckAI/app/src/main/assets/
+          cp icon-192.png SkinCheckAI/app/src/main/res/drawable/ 2>/dev/null || true
+
+          # AndroidManifest.xml
+          cat > SkinCheckAI/app/src/main/AndroidManifest.xml << 'XMLEOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              package="com.skincheck.ai">
+              <uses-permission android:name="android.permission.INTERNET"/>
+              <application
+                  android:allowBackup="true"
+                  android:label="SkinCheck AI"
+                  android:supportsRtl="true"
+                  android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:configChanges="orientation|screenSize">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          XMLEOF
+
+          # MainActivity.java (WebView loading local files)
+          cat > SkinCheckAI/app/src/main/java/com/skincheck/ai/MainActivity.java << 'JAVAEOF'
+          package com.skincheck.ai;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.webkit.WebChromeClient;
+          public class MainActivity extends Activity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  WebView wv = new WebView(this);
+                  WebSettings ws = wv.getSettings();
+                  ws.setJavaScriptEnabled(true);
+                  ws.setAllowFileAccess(true);
+                  ws.setAllowContentAccess(true);
+                  ws.setDomStorageEnabled(true);
+                  ws.setDatabaseEnabled(true);
+                  ws.setUseWideViewPort(true);
+                  ws.setLoadWithOverviewMode(true);
+                  ws.setMediaPlaybackRequiresUserGesture(false);
+                  wv.setWebViewClient(new WebViewClient());
+                  wv.setWebChromeClient(new WebChromeClient());
+                  wv.loadUrl("file:///android_asset/index.html");
+                  setContentView(wv);
+              }
+              @Override public void onBackPressed() {
+                  WebView wv = (WebView) findViewById(android.R.id.content);
+                  if (wv != null && wv.canGoBack()) wv.goBack();
+                  else super.onBackPressed();
+              }
+          }
+          JAVAEOF
+
+          # build.gradle (project)
+          cat > SkinCheckAI/build.gradle << 'GRADEOF'
+          buildscript {
+              repositories { google(); mavenCentral() }
+              dependencies { classpath 'com.android.tools.build:gradle:8.2.0' }
+          }
+          allprojects { repositories { google(); mavenCentral() } }
+          GRADEOF
+
+          # build.gradle (app)
+          cat > SkinCheckAI/app/build.gradle << 'GRADEOF'
+          plugins { id 'com.android.application' }
+          android {
+              namespace 'com.skincheck.ai'
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.skincheck.ai"
+                  minSdk 26
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+              buildTypes { release { minifyEnabled false } }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          dependencies { implementation 'androidx.webkit:webkit:1.9.0' }
+          GRADEOF
+
+          # settings.gradle
+          cat > SkinCheckAI/settings.gradle << 'GRADEOF'
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositories { google(); mavenCentral() } }
+          rootProject.name = 'SkinCheckAI'
+          include ':app'
+          GRADEOF
+
+          # gradle.properties
+          cat > SkinCheckAI/gradle.properties << 'GRADEOF'
+          android.useAndroidX=true
+          android.enableJetifier=true
+          org.gradle.jvmargs=-Xmx2048m
+          GRADEOF
+
+          # local.properties
+          echo "sdk.dir=$ANDROID_HOME" > SkinCheckAI/local.properties
+
+          # Gradle wrapper
+          cat > SkinCheckAI/gradle/wrapper/gradle-wrapper.properties << 'GRADEOF'
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          GRADEOF
+
+          # Generate wrapper scripts
+          cd SkinCheckAI
+          gradle wrapper 2>/dev/null || true
+          if [ ! -f gradlew ]; then
+            # Create minimal gradlew
+            cat > gradlew << 'SHEOF'
+          #!/bin/sh
+          exec java -cp "gradle/wrapper/gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain "$@"
+          SHEOF
+            chmod +x gradlew
+          fi
+
+      - name: Build APK
+        run: |
+          cd SkinCheckAI
+          # Download gradle wrapper jar if missing
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.5.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+          fi
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
           name: SkinCheck-AI-APK
-          path: app_build/android/app/build/outputs/apk/debug/app-debug.apk
+          path: SkinCheckAI/app/build/outputs/apk/debug/app-debug.apk
